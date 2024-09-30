@@ -3,105 +3,134 @@ To accurately outline the scope of work required for a project, it is crucial to
 Here's a simple expense tracker implementation in Java:
 
 
+
+ 
+Here's a simple expense tracker code in Java using GUI (Graphical User Interface) with Swing library:
+
 ExpenseTracker.java
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class ExpenseTracker {
-    private ArrayList<Expense> expenses;
-    private double totalExpense;
+    JFrame frame;
+    JTextField dateField, categoryField, amountField;
+    JTextArea expenseList;
+    JButton addButton, deleteButton, totalButton;
+    ArrayList<Expense> expenses;
 
     public ExpenseTracker() {
+        createGUI();
+    }
+
+    void createGUI() {
+        frame = new JFrame("Expense Tracker");
+        frame.setSize(400, 400);
+        frame.setLayout(new BorderLayout());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Input Panel
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(3, 2));
+        frame.add(inputPanel, BorderLayout.NORTH);
+
+        inputPanel.add(new JLabel("Date (yyyy-mm-dd)"));
+        dateField = new JTextField();
+        inputPanel.add(dateField);
+
+        inputPanel.add(new JLabel("Category"));
+        categoryField = new JTextField();
+        inputPanel.add(categoryField);
+
+        inputPanel.add(new JLabel("Amount"));
+        amountField = new JTextField();
+        inputPanel.add(amountField);
+
+        // Button Panel
+        JPanel buttonPanel = new JPanel();
+        frame.add(buttonPanel, BorderLayout.CENTER);
+
+        addButton = new JButton("Add Expense");
+        addButton.addActionListener(this::addExpense);
+        buttonPanel.add(addButton);
+
+        deleteButton = new JButton("Delete Expense");
+        deleteButton.addActionListener(this::deleteExpense);
+        buttonPanel.add(deleteButton);
+
+        totalButton = new JButton("Total Expenses");
+        totalButton.addActionListener(this::calculateTotal);
+        buttonPanel.add(totalButton);
+
+        // Expense List
+        expenseList = new JTextArea(10, 20);
+        frame.add(new JScrollPane(expenseList), BorderLayout.SOUTH);
+
         expenses = new ArrayList<>();
-        totalExpense = 0.0;
+
+        frame.setVisible(true);
     }
 
-    public void addExpense(String category, double amount) {
-        Expense expense = new Expense(category, amount);
+    void addExpense(ActionEvent e) {
+        String date = dateField.getText();
+        String category = categoryField.getText();
+        double amount = Double.parseDouble(amountField.getText());
+
+        Expense expense = new Expense(date, category, amount);
         expenses.add(expense);
-        totalExpense += amount;
+
+        expenseList.append(expense.toString() + "\n");
+
+        dateField.setText("");
+        categoryField.setText("");
+        amountField.setText("");
     }
 
-    public void removeExpense(int index) {
-        if (index >= 0 && index < expenses.size()) {
-            totalExpense -= expenses.get(index).getAmount();
-            expenses.remove(index);
+    void deleteExpense(ActionEvent e) {
+        int selectedIndex = expenseList.getCaretPosition();
+        if (selectedIndex != -1) {
+            expenses.remove(selectedIndex / 2);
+            expenseList.setText("");
+            for (Expense expense : expenses) {
+                expenseList.append(expense.toString() + "\n");
+            }
         }
     }
 
-    public void displayExpenses() {
-        System.out.println("Expenses:");
-        for (int i = 0; i < expenses.size(); i++) {
-            System.out.println((i + 1) + ". " + expenses.get(i).toString());
+    void calculateTotal(ActionEvent e) {
+        double total = 0;
+        for (Expense expense : expenses) {
+            total += expense.getAmount();
         }
-        System.out.println("Total Expense: $" + totalExpense);
+        JOptionPane.showMessageDialog(frame, "Total Expenses: " + total);
     }
 
     public static void main(String[] args) {
-        ExpenseTracker tracker = new ExpenseTracker();
-        Scanner scanner = new Scanner(System.in);
-
-        while (true) {
-            System.out.println("1. Add Expense");
-            System.out.println("2. Remove Expense");
-            System.out.println("3. Display Expenses");
-            System.out.println("4. Exit");
-            System.out.print("Choose an option: ");
-            int option = scanner.nextInt();
-            scanner.nextLine(); // Consume newline left-over
-
-            switch (option) {
-                case 1:
-                    System.out.print("Enter category: ");
-                    String category = scanner.nextLine();
-                    System.out.print("Enter amount: $");
-                    double amount = scanner.nextDouble();
-                    scanner.nextLine(); // Consume newline left-over
-                    tracker.addExpense(category, amount);
-                    break;
-                case 2:
-                    System.out.print("Enter expense number to remove: ");
-                    int index = scanner.nextInt();
-                    scanner.nextLine(); // Consume newline left-over
-                    tracker.removeExpense(index - 1);
-                    break;
-                case 3:
-                    tracker.displayExpenses();
-                    break;
-                case 4:
-                    System.exit(0);
-                    break;
-                default:
-                    System.out.println("Invalid option");
-            }
-        }
+        SwingUtilities.invokeLater(ExpenseTracker::new);
     }
 }
 
 class Expense {
+    private String date;
     private String category;
     private double amount;
 
-    public Expense(String category, double amount) {
+    public Expense(String date, String category, double amount) {
+        this.date = date;
         this.category = category;
         this.amount = amount;
     }
 
-    public String getCategory() {
-        return category;
+    public String toString() {
+        return date + " - " + category + ": $" + amount;
     }
 
     public double getAmount() {
         return amount;
     }
-
-    @Override
-    public String toString() {
-        return category + " - $" + amount;
-    }
 }
-
 
 
 
